@@ -14,7 +14,7 @@ Dentro de las features que incorpora TypeScript, la más importante son los **ty
 npm install -g typescript
 ```
 
-### Ejemplo:
+## Un pantallazo: diferencias entre JS y TS
 
 #### **JavaScript Vanilla**
 
@@ -94,7 +94,7 @@ _La principal diferencia es que JavaScript utiliza **tipos dinámicos** que se r
 4. object
 5. array
 
-### Type: number
+### Type: _number_
 
 Agregando la sintaxis `: number` a continuación de un elemento, le estamos indicando a TS que el valor que espera ese elemento tiene que ser del tipo número.
 
@@ -115,15 +115,15 @@ En caso de querer asignar un valor de tipo string en `number 1` o `number 2`, el
 
 **Si el código contiene errores, TypeScript no lo va a compilar** en un archivo de JavaScript, obligándonos a corregir las incoherencias de nuestro programa.
 
-### Type: boolean
+### Type: _boolean_
 
 Agregando la sintaxis `: boolean` a continuación de un elemento, le estamos indicando a TS que el valor que espera ese elemento tiene que ser del tipo `true` o `false` (_aclaración: no truthy o falsy_).
 
-### Type: string
+### Type: _string_
 
 Agregando la sintaxis `: string` a continuación de un elemento, le estamos indicando a TS que el valor que espera ese elemento tiene que ser del tipo cadena de texto.
 
-## Type Inference: No es necesario aclarar el type de TODAS las variables definidas
+## _Type Inference_: Por qué no es necesario aclarar el type de TODAS las variables definidas
 
 En TypeScript existe algo llamado **type inference**, que permite que el lenguaje infiera automáticamente el tipo de la variable que estmaos definiendo _cuando a esta se le asigna un valor._
 
@@ -143,7 +143,7 @@ Distinto es si estamos creando una variable, pero sin asignarle un valor (por qu
 let number2: number;
 ```
 
-### Type: object
+### Type: _object_
 
 Cuando trabajamos con objetos de JavaScript tenemos la posibilidad de aclarar que los mismos son del tipo `object`. Sin embargo, esto no es estrictamente necesario, ya que mediante **type inference** TS puede inferir que se trata de un objeto literal e incluso analizar el contenido del mismo.
 
@@ -172,7 +172,7 @@ const perro: {
 };
 ```
 
-### Type: Array
+### Type: _Array_
 
 Cuando trabajamos con arreglos de JavaScript tenemos la posibilidad de aclarar que los mismos son del tipo `array`. Esto podría ser algo sencillo de inferir por TS, pero podemos ir más allá y definir qué tipos de elementos van a conformar ese array mediante la sintaxis `string[]` si se tratara de un arreglo de strings o `number[]` si el mismo estuviera conformado por números.
 
@@ -204,7 +204,7 @@ Por ejemplo, podríamos iterar el array `hobbies` con un ciclo for y dentro del 
 
 ## TypeScript Types: Types específicos de TS
 
-### Type: Tuple
+### Type: _Tuple_
 
 El tipo `tuple` es un `Array` donde la longitud y tipos de dato son fijos.
 
@@ -228,7 +228,7 @@ const perro: {
 
 En el ejemplo anterior estamos especificando que el array `raza` debe tener exactamente 2 posiciones, donde la primera debe ser un `number` y la segunda un `string`.
 
-### Type: Enums
+### Type: _Enums_
 
 ̦̌Los `Enums` son uno de los tipos que admite TypeScript pero que no están soportados por JavaScript (aunque sí están presentes en otros lenguajes de progamación).
 
@@ -250,7 +250,7 @@ const perro = {
 
 Es importante tener en cuenta que el código anterior no se va a ver exactamente igual transformado en JavaScript luego de ser compilado, porque los Enums no están soportados por dicho lenguaje.
 
-### Type: any
+### Type: _any_
 
 Es el type `any` es el más flexible de todos: no le dice nada a TypeScript acerca de la informacion que puede almacenar un elemento. Por este motivo es desaconsejable usarlo, ya que nos priva de todas las ventajas que ofrece TypeScript a la hora de evalular nuestro código en busca de errores.
 
@@ -360,7 +360,7 @@ function agregar(n1: number, n2: number): string {
 }
 ```
 
-### El return type `void`
+### El return type _`void`_
 
 Cuando una función no tiene un return, en TypeScript se dice que retorna `void` _(vacío)_.
 
