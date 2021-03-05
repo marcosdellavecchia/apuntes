@@ -86,11 +86,13 @@ tsc prueba.ts
 
 _La principal diferencia es que JavaScript utiliza **tipos dinámicos** que se resuelven en tiempo de ejecución, mientras que TypeScript utiliza **tipos estáticos** que son seteados durante el desarrollo._
 
-## Core Types: Types de JavaScript también soportados por TypeScript:
+## **Core Types**: Types de JavaScript también soportados por TypeScript:
 
 1. number
 2. string
 3. boolean
+4. object
+5. array
 
 ### Type: number
 
@@ -226,4 +228,206 @@ const perro: {
 
 En el ejemplo anterior estamos especificando que el array `raza` debe tener exactamente 2 posiciones, donde la primera debe ser un `number` y la segunda un `string`.
 
-### Type:
+### Type: Enums
+
+̦̌Los `Enums` son uno de los tipos que admite TypeScript pero que no están soportados por JavaScript (aunque sí están presentes en otros lenguajes de progamación).
+
+Los Enums permiten setear una colección de constantes que pueden ser del tipo `number` o `string`, a las cuales se puede acceder posteriormente.
+
+Siguiendo con el ejemplo anterior:
+
+```ts
+const Roles = { GUARDIAN = 1, DE_COMPANIA = 2, CAZADOR = 3 };
+
+const perro = {
+  nombre: "Max",
+  edad: 4,
+  hobbies: ["Comer", "Dormir", "Mover la cola"],
+  raza: [4, "Ovejero"],
+  rol: Roles.GUARDIAN,
+};
+```
+
+Es importante tener en cuenta que el código anterior no se va a ver exactamente igual transformado en JavaScript luego de ser compilado, porque los Enums no están soportados por dicho lenguaje.
+
+### Type: any
+
+Es el type `any` es el más flexible de todos: no le dice nada a TypeScript acerca de la informacion que puede almacenar un elemento. Por este motivo es desaconsejable usarlo, ya que nos priva de todas las ventajas que ofrece TypeScript a la hora de evalular nuestro código en busca de errores.
+
+Ejemplo:
+
+```ts
+let arrayCualquiera = any[];
+arrayCualquiera = ['Tomate', 47]
+```
+
+## Union Types
+
+En el caso de querer especificar que un parmetro podría esperar tanto un `number` como un `string`, aparecen los Union Types.
+
+Estos se expresan separando los types que podría esperar un parámetro separados por barras verticales "`|`" de la siguiente manera:
+
+```ts
+const combinar(input1: number | string, input2: number | string) {
+  const resultado = input1 + input2;
+  return resultado;
+}
+```
+
+El problema con el código expresado anteriormente es que TypeScript no va a poder resolver la función si asignamos, por ejemplo, un `string` al input1 y un `number` al input2 de forma simultánea. Por ejemplo: `combinar(2, 'Gato')` arrojaría un resultado no esperado.
+
+Por este motivo, debemos aclarar un **runtime check** a nuestra función:
+
+```ts
+const combinar(input1: number | string, input2: number | string) {
+
+  let resultado;
+
+  if (typeof input1 === 'number' && typeof input2 === 'number') {
+  resultado = input1 + input2;
+  } else {
+  resultado = input1.toString() + input2.toString();
+  }
+
+  return resultado;
+}
+```
+
+## Literal Types
+
+En estos types no sabemos si una variable o parametro debe contener un `number` o `string`, pero estamos seguros del **valor exacto que debería contener**.
+
+En el siguiente ejemplo se define una constante que va a determinar si el resultado se debe mostrar como `number` o `string` de acuerdo al valor que contenga la misma:
+
+```ts
+function combinar(
+  input1: number | string,
+  input2: number | string,
+  conversionResultado: "as-number" | "as-text"
+) {
+  let resultado;
+  if (
+    (typeof input1 === "number" && typeof input2 === "number") ||
+    conversionResultado === "as-number"
+  ) {
+    result = +input1 + +input2;
+  } else {
+    result = input1.toString() + input2.toString();
+  }
+  return result;
+}
+```
+
+## Alias / Custom Types
+
+TypeScript nos permite crear nuestros propios types customizados que almacenen `unions` o `literal types` (incluso también `objects`) y nos ayuden a reutilizar nuestra lógica escribiendo menos líneas de código.
+
+El ejemplo del caso anterior se podría reescribir de esta forma utilizando `aliases / custom types`:
+
+```ts
+type Combinable = number | string;
+type DescripcionDelResultado = "as-number" | "as-string";
+
+function combinar(
+  input1: Combinable,
+  input2: Combinable,
+  conversionResultado: DescripcionDelResultado
+) {
+  let resultado;
+  if (
+    (typeof input1 === "number" && typeof input2 === "number") ||
+    conversionResultado === "as-number"
+  ) {
+    result = +input1 + +input2;
+  } else {
+    result = input1.toString() + input2.toString();
+  }
+  return result;
+}
+```
+
+## Function Return Types
+
+Hasta el momento las funciones vistas retornaban un tipo de resultado **inferido** por TypeScript. Sin embargo, también tenemos la posibilidad de especificar de qué tipo es el resultado que estamos esperando.
+
+Esto se podría lograr agregando `: number` o `: string` inmediatamente después de definir los parámetros de la función.
+
+De esta forma, si quisieramos que la función nos retorne una cadena de texto, el ejemplo a continuación concatenaría el resultado en lugar de sumarlo:
+
+```ts
+function agregar(n1: number, n2: number): string {
+  return n1 + n2;
+}
+```
+
+### El return type `void`
+
+Cuando una función no tiene un return, en TypeScript se dice que retorna `void` _(vacío)_.
+
+En el ejemplo a continuación, se agrega el sufijo `: void` luego de definir los parámetros de la función para que sea lo más explícito posible. Sin embargo, TypeScript es capaz de inferir sin problemas que el return de la función es de este tipo, y no sería necesario incluirlo.
+
+```ts
+function agregar(n1: number, n2: number) {
+  return n1 + n2;
+}
+
+function imprimirResultado(num: number): void {
+  console.log("Result: " + num);
+}
+
+imprimirResultado(agregar(5, 12)); // Imprime en pantalla 17
+```
+
+## Function Types
+
+TypeScript nos da la posibilidad de especificar que una variable que estamos definiendo debe contener dentro de si una función. Esto es sencillo de lograr con la sintaxis `: Function` de la siguiente manera:
+
+```ts
+function agregar(n1: number, n2: number) {
+  return n1 + n2;
+}
+
+let combinarValores = agregar: Function;
+```
+
+Sin embargo, esto no le dice nada a TypeScript acerca de la cantidad de parámetros que debe recibir esa función, ni tampoco el type de dichos parámetros.
+
+Por este motivo, existe una sintaxis _similar a la de una arrow function_ que nos permite lograr este cometido:
+
+```ts
+function agregar(n1: number, n2: number) {
+  return n1 + n2;
+}
+
+let combinarValores: (a: number, b: number) => number;
+
+combinarValores = agregar;
+```
+
+En el ejemplo anterior especificamos la _cantidad de argumentos, el tipo de los mismos y el tipo de elemento que va a retornar la función_. Esto lo hacemos sin utilizar el sufijo `: Function`, si no con una sintaxis similar a la de una función flecha de JavaScript moderno.
+
+## Unknown type
+
+El tipo `unknown` podría parecer similar a `any`, aunque en realidad es un poco más restrictivo (y por ende, más recomendable que el anterior).
+
+`unknown` asume que no sabemos qué valor va a almacenarse en él, pero sí **qué es lo que queremos hacer con ese valor**.
+
+### Entonces... Cuál es la diferencia entre `unknown` y `any`?
+
+Cualquer type puede asignarse a `unknown`, pero `unknown` puede ser asignado únicamente a `any` y a sí mismo. Esto obliga a realizar chequeos antes de efectuar una asignación de variables.
+
+Esto no sucede con `any`, que escapa de cualquier tipo de control por parte de TypeScript (y por eso es menos recomendable su utilización).
+
+## Never type
+
+Al igual que `void`, `never` es otro type que puede ser retornado por funciones.
+
+Este type es relativamente nuevo, y por este motivo, no es inferido por TypeScript si no lo aclaramos. Se utiliza para funciones que **nunca retornan un valor**, como podría ser el siguiente ejemplo:
+
+```ts
+function generarError(message: string, code: number): never {
+  throw { message: message, errorCode: code };
+}
+```
+
+Si hicieramos un console.log de esta funcion, veríamos que no devuelve nada (ni siquiera _undefined_). Es por eso que el type `never`, si bien no es obligatorio, forma parte de una buena práctica del código en TypeScript.
