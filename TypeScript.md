@@ -484,9 +484,29 @@ El compilation target hace referencia a la versión de JavaScript que va a utili
 
 Por ejemplo, `"compilerOptions":{"target": "es5"}` utilizaría `var` para definir variables, mientras que `"compilerOptions":{"target": "es6"}` podría utilizar `let` y `const`, que son admitidas por la versión EcmaScript6 de Javascript.
 
-## outDir y rootDir
+## `outDir` y `rootDir`
 
 Dentro del archivo `tsconfig.json` podemos encontrar dos archivos de configuración que nos pueden ser de utilidad a la hora de compilar:
 
 - `"outDir:"` va a especificar la ruta en la cual se almacenarán los archivos .js compilados. Por ejemplo: `./dist/`
 - `"rootDir:"` va a especificar la ruta en la cual el compilador buscará los archivos .ts a compilar. Por ejemplo: `./src/`. Además, la estructura de carpetas en `rootDir` se va a ver replicada en el `outDir` en el cual se almacenen los archivos .js finales.
+
+## No emitir compilaciones con errores
+
+Agregando la línea `"noEmitOnError": true` a nuestro archivo `tsconfig.json` nos vamos a asegurar de que el sistema no emita ningun archivo de JavaScript cuya compilación haya arrojado cualquier tipo de error.
+
+## Strict compilation
+
+El archivo `tsconfig.json` contiene una línea con el atributo "`strict": true`.
+
+Al estar en `true` por defecto, la strict compilation activa todas las siguientes _strict options_:
+
+```json
+    "noImplicitAny": true,                       /* Raise error on expressions and declarations with an implied 'any' type. */
+    "strictNullChecks": true,                    /* Enable strict null checks. */
+    "strictFunctionTypes": true,                 /* Enable strict checking of function types. */
+    "strictBindCallApply": true,                 /* Enable strict 'bind', 'call', and 'apply' methods on functions. */
+    "strictPropertyInitialization": true,        /* Enable strict checking of property initialization in classes. */
+    "noImplicitThis": true,                      /* Raise error on 'this' expressions with an implied 'any' type. */
+    "alwaysStrict": true,                        /* Parse in strict mode and emit "use strict" for each source file. */
+```
