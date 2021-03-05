@@ -431,3 +431,62 @@ function generarError(message: string, code: number): never {
 ```
 
 Si hicieramos un console.log de esta funcion, veríamos que no devuelve nada (ni siquiera _undefined_). Es por eso que el type `never`, si bien no es obligatorio, forma parte de una buena práctica del código en TypeScript.
+
+# Compilación en TypeScript
+
+## Watch mode
+
+Para hacer menos engorroso el proceso de compilado y no tener que realizarlo cada vez que efectuamos un cambio en nuestro código, existe el **watch mode**.
+
+El watch mode va a estar monitoreando de manera constante los cambios en nuestro documento, y realizar el proceso de compilado **cada vez que guardemos nuestro archivo**.
+
+### Compilar en watch mode para un **único archivo**:
+
+```
+tsc app.js -w
+```
+
+### Compilar en watch mode para **todo el proyecto**:
+
+```
+tsc --init  // Sólo requerido para inicializar el proyecto
+tsc         // Se ejecuta para compilar todos los archivos .ts
+tsc -w      // Se ejecuta para compilar todos los archivos .ts en watch mode
+
+```
+
+## Incluir y excluir archivos de la compilación
+
+Excluir un archivo del proceso de compilado:
+
+**En el archivo tsconfig.json**
+
+```json
+"exclude": [
+"node_modules"     // Si no se aclara, viene por default
+"prueba.ts"
+]
+```
+
+Incluir un archivo (o directorio) específico en el proceso de compilado:
+
+**En el archivo tsconfig.json**
+
+```json
+"include": [
+"prueba.ts"
+]
+```
+
+## Configurando el _compilation target_
+
+El compilation target hace referencia a la versión de JavaScript que va a utilizar el compilador a la hora de transformar nuestro código. Esto se determina en la propiedad `"compilerOptions"` dentro del archivo **tsconfig.json**
+
+Por ejemplo, `"compilerOptions":{"target": "es5"}` utilizaría `var` para definir variables, mientras que `"compilerOptions":{"target": "es6"}` podría utilizar `let` y `const`, que son admitidas por la versión EcmaScript6 de Javascript.
+
+## outDir y rootDir
+
+Dentro del archivo `tsconfig.json` podemos encontrar dos archivos de configuración que nos pueden ser de utilidad a la hora de compilar:
+
+- `"outDir:"` va a especificar la ruta en la cual se almacenarán los archivos .js compilados. Por ejemplo: `./dist/`
+- `"rootDir:"` va a especificar la ruta en la cual el compilador buscará los archivos .ts a compilar. Por ejemplo: `./src/`. Además, la estructura de carpetas en `rootDir` se va a ver replicada en el `outDir` en el cual se almacenen los archivos .js finales.
