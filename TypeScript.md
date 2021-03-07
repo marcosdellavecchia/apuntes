@@ -484,7 +484,9 @@ El compilation target hace referencia a la versión de JavaScript que va a utili
 
 Por ejemplo, `"compilerOptions":{"target": "es5"}` utilizaría `var` para definir variables, mientras que `"compilerOptions":{"target": "es6"}` podría utilizar `let` y `const`, que son admitidas por la versión EcmaScript6 de Javascript.
 
-## `outDir` y `rootDir`
+Esto no es algo menor y representa uno de los **puntos fuertes de TypeScript**, ya que no sólo nos puede ayudar a evitar errores y escribir mejor código, sino también a **hacer que nuestras aplicaciones se puedan adaptar a distintos requisitos de compatibilidad**.
+
+## outDir y rootDir
 
 Dentro del archivo `tsconfig.json` podemos encontrar dos archivos de configuración que nos pueden ser de utilidad a la hora de compilar:
 
@@ -510,3 +512,65 @@ Al estar en `true` por defecto, la strict compilation activa todas las siguiente
     "noImplicitThis": true,                      /* Raise error on 'this' expressions with an implied 'any' type. */
     "alwaysStrict": true,                        /* Parse in strict mode and emit "use strict" for each source file. */
 ```
+
+# Clases e Instancias en TypeScript
+
+El concepto de **clases** tiene su origen en la _Programación Orientada a Objetos_, y hace referencia a los **modelos que definen un conjunto de variables y métodos a ser utilizados por determinados objetos**.
+
+Las clases nos permiten definir como se debería ver un objeto, los métodos que debería tener, los datos que debería almacenar, etc.
+
+Cada objeto que se crea a partir de una clase se denomina **instancia**.
+
+Las clases existen para acelerar y facilitar el proceso de creación de objetos que tienen la misma estructura y métodos, y que difieren únicamente en su información contenida.
+
+## Creando una clase
+
+A modo de ejemplo, creamos una clase `Departamento` y le agregamos el atributo `name`, haciendo referencia a los distintos departamentos que pueden existir en una empresa.
+
+```ts
+class Departamento {
+  name: string;
+  constructor(n: string) {
+    this.name = n;
+  }
+}
+```
+
+Creamos una instancia de la clase `Departamento` y la imprimimos por consola:
+
+```ts
+const contabilidad = new Departamento("Contabilidad");
+
+console.log(contabilidad);
+// imprime el objeto: Departamento {name: "Contabilidad" }
+```
+
+### Cómo se ven nuestras clases e instancias compiladas en en JavaScript?
+
+**Así se compila en ES5**
+
+```js
+var Departamento = (function () {
+  function Departamento(n) {
+    this.name = n;
+  }
+  return Departamento;
+})();
+var contabilidad = new Departamento("Contabilidad");
+console.log(contabilidad);
+```
+
+**Así se compila en ES6**
+
+```js
+"use strict";
+class Departamento {
+  constructor(n) {
+    this.name = n;
+  }
+}
+const contabilidad = new Departamento("Contabilidad");
+console.log(contabilidad);
+```
+
+Una vez más se aprecia cómo TypeScript adapta nuestro código según los parámetros establecidos en el archivo `tsconfig.json`.
