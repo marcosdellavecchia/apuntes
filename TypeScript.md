@@ -774,3 +774,237 @@ user1.greet("Hi there - I am");
 ```
 
 ## Clases Abstractas vs Interfaces: Diferencias
+
+### Interfaz
+
+- Todos los miembros son abstractos.
+- Soportan herencias múltiples.
+- Sólo disponible en TypeScript, no compila ningún código de JavaScript.
+
+### Clase Abstracta
+
+- Algunos miembros son abstractos y otros _fully implemented_.
+- No soportan herencias múltiples.
+- Compila código de JavaScript.
+
+## Cuándo utilizar interfaces?
+
+Una interfaz es especialmente útil cuando queremos **forzar la presencia de una o varias funcionalidades** y asegurarnos de estén siempre presentes en los objetos instanciados de una clase.
+
+# Types avanzados en TypeScript
+
+## Intersection Types
+
+Los intersection types nos **permiten combinar dos o más types** previamente definidos.
+
+Ejemplo:
+
+```ts
+type Admin = {
+  name: string;
+  privileges: string[];
+};
+
+type Employee = {
+  name: string;
+  startDate: Date;
+};
+
+type ElevatedEmployee = Admin & Employee;
+
+const e1: ElevatedEmployee = {
+  name: "Max",
+  privileges: ["create-server"],
+  startDate: new Date(),
+};
+```
+
+Ejemplo 2:
+
+```ts
+type Combinable = string | number;
+type Numeric = number | boolean;
+
+type Universal = Combinable & Numeric;
+```
+
+## Type Guards
+
+Los type guards nos permiten **utilizar la flexibilidad de los union types y aún así asegurarnos de que nuestro código se ejecute de la manera deseada**.
+
+Ejemplo: type guard con `typeof` se asegura de retornar una suma sólo después de asegurarse que los parámetros recibidos no sean string, en cuyo caso concatena los mismos.
+
+```ts
+type Combinable = string | number;
+
+function add(a: Combinable, b: Combinable) {
+  if (typeof a === 'string') || (typeof b === 'string') {
+    return a.toString() + b.toString()
+  }
+  return a + b
+}
+```
+
+Ejemplo 2: type guard con `in` evalúa si una propiedad existe dentro del parámetro ingresado
+
+```ts
+type Admin = {
+  name: string;
+  privileges: string[];
+};
+
+type Employee = {
+  name: string;
+  startDate: Date;
+};
+
+type UnknownEmployee = Employee | Admin;
+
+function printEmployeeInformation(emp: UnknownEmployee) {
+  console.log("Name: " + emp.name);
+  if ("privileges" in emp) {
+    console.log("Privileges: " + emp.privileges);
+  }
+  if ("startDate" in emp) {
+    console.log("Start Date: " + emp.startDate);
+  }
+}
+```
+
+## Discriminated Unions
+
+Es un patrón que puede utilizarse al trabajar con union types que facilita la implementación de type guards. Está disponible cuando trabajamos con `object` types.
+
+En lugar de verificar la existencia de una propiedad, usamos una propiedad que ya sabemos que existe para chequear con qué tipo de objeto estamos trabajando.
+
+Ejemplo:
+
+```ts
+interface Bird {
+  type: "bird";
+  flyingSpeed: number;
+}
+
+interface Horse {
+  type: "horse";
+  runningSpeed: number;
+}
+
+type Animal = Bird | Horse;
+
+function moveAnimal(animal: Animal) {
+  let speed;
+  switch (animal.type) {
+    case "bird":
+      speed = animal.flyingSpeed;
+      break;
+    case "horse":
+      speed = animal.runningSpeed;
+  }
+  console.log("Moving at speed: " + speed);
+}
+
+moveAnimal({ type: "bird", flyingSpeed: 10 });
+```
+
+## Type Casting
+
+Sirve para determinar que un valor es de un tipo específico que TypeScript no puede detectar por sí mismo, pero nosotros como desarrolladores sabemos que es así y podemos hacerlo.
+
+Ejemplo con Alternativa 1: `<HTMLInputElement>`
+
+```ts
+const userInputElement = <HTMLInputElement>(
+  document.getElementById("user-input")!
+);
+
+if (userInputElement) {
+  userInputElement.value = "Hi there!";
+}
+```
+
+Ejemplo con Alternativa 2: `as HTMLInputElement`
+
+```ts
+const userInputElement = document.getElementById(
+  "user-input"
+)! as HTMLInputElement;
+
+if (userInputElement) {
+  userInputElement.value = "Hi there!";
+}
+```
+
+## Index Properties
+
+Supongamos que creamos un objeto en el cual tenemos en claro el tipo de valor que almacena (por ejemplo `string`) pero **no sabemos cuántas propiedades va a tener ni el nombre de las mismas**. En un escenario de este tipo son útiles los `index` types.
+
+Ejemplo: Caja de errores
+
+```ts
+interface ErrorContainer {
+  // { email: 'Not a valid email', username: 'Must start with a character!' }
+  [prop: string]: string;
+}
+
+const errorBag: ErrorContainer = {
+  email: "Not a valid email!",
+  username: "Must start with a capital character!",
+};
+```
+
+## Function Overloads
+
+Es una feature de TypeScript que nos permite definir _function signatures_ múltiples. Esto quiere decir, múltiples maneras de llamar a una función con diferentes parámetros y al mismo tiempo un `return type` para cada una de ellas.
+
+```ts
+function add(a: number, b: number): number;
+function add(a: string, b: string): string;
+function add(a: string, b: number): string;
+function add(a: number, b: string): string;
+function add(a: Combinable, b: Combinable) {
+  if (typeof a === "string" || typeof b === "string") {
+    return a.toString() + b.toString();
+  }
+  return a + b;
+}
+
+const result = add("Max", " Schwarz");
+result.split(" ");
+```
+
+## Optional Chaining
+
+En el escenario de estar obteniendo información de cualquier fuente (backend, base de datos, etc) en la cual **no sabemos con exactitud si en un objeto una propiedad determinada está definida**, es cuando se vuelven útil el optional chaining.
+
+El operador optional chaining consiste en un signo de interrogación `?` agregado a continuación del elemento que no estamos seguros si está definido o no.
+
+Ejemplo: Fetching user data.
+
+```ts
+const fetchedUserData = {
+  id: "u1",
+  name: "Max",
+  job: { title: "CEO", description: "My own company" },
+};
+
+console.log(fetchedUserData?.job?.title);
+```
+
+En el console log se chequea primero si existe la propiedad `job`, y en caso de ser afirmativo luego se vuelve a chequear si existe la propiedad `title`. Es similar a estar concatenando `if` statements. Si alguna de las dos propiedades no estuviera presente, se corta la función evitando errores en tiempo de ejecución.
+
+## Nullish Coalescing
+
+Cuando tenemos información que no sabemos si podría ser `null`, `undefined` o si se trata de un dato válido (por ejemplo, un input con información ingresada por el usuario) podemos usar el nullish coalescing operator.
+
+Este se representa con dos signos de interrogación `??` y sirve para indicarle a TypeScript que **si algo es null o undefined** (no vacío o cero) en ese caso utilice un fallback.
+
+Ejemplo:
+
+```ts
+const userInput = undefined;
+
+const storedData = userInput ?? "DEFAULT";
+
+console.log(storedData); // imprime 'DEFAULT'
+```
