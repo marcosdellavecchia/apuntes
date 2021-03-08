@@ -574,3 +574,203 @@ console.log(contabilidad);
 ```
 
 Una vez más se aprecia cómo TypeScript adapta nuestro código según los parámetros establecidos en el archivo `tsconfig.json`.
+
+## Métodos en funciones constructoras y el uso de `this`
+
+Las clases de JavaScript pueden contener métodos propios, los cuales se definen en la función constructora para luego poder ser utilizados por los objetos instanciados de dicha clase.
+
+En el siguiente ejemplo vemos el método `describe()`, que imprime el nombre del departamento en custión.
+
+```ts
+class Departamento {
+  name: string;
+  constructor(n: string) {
+    this.name = n;
+  }
+  describe() {
+    console.log("Este es el departamento de " + this.name);
+  }
+}
+```
+
+```js
+const contabilidad = new Departamento("Contabilidad");
+
+contabilidad.describe(); // imprime 'Este es el departamento de Contabilidad'.
+```
+
+Se puede ver el uso de la palabra reservada `this`, que es necesaria para especificar que nos estamos refiriendo al atributo `name` definido dentro de la clase en la cual estamos escribiendo nuestro método, y no a una variable global.
+
+### Pero el uso de la palabra `this` puede ser confuso algunas veces...
+
+Supongamos el siguiente ejemplo: vamos a crear una nueva constante llamada `contabilidadCopia` y asignarle el método `describe` de la constante `contabilidad` para ver si podemos utilizarlo.
+
+```ts
+const contabilidadCopia = { describe: contabilidad.describe };
+
+contabilidadCopia.describe(); // Imprime 'undefined' (a pesar de compilar)
+```
+
+El motivo por el cual `contabilidadCopia.describe()` retorna undefined es porque **la palabra this se refiere al objeto que es responsable de llamar un método**. Dicho esto, el responsable de llamar a `.describe()` en este caso es `contabilidadCopia`, que no tiene una propiedad `name` la cual retornar.
+
+### Cómo solucionamos este problema que nos podría causar `this`?
+
+Una forma de evitar este _undefined_ es asignando el parámetro `this` a la hora de definir nuestro método. Este es un parámetro especial, ya que **todavía podemos llamar al método sin pasar ningún parámetro**. Posterior a esto, deberíamos asignar una clase a `this`, la cual en nuestro caso debería ser `Departamento`.
+
+De esta manera, nuestra clase quedaría construída así:
+
+```ts
+class Departamento {
+  name: string;
+  constructor(n: string) {
+    this.name = n;
+  }
+  describe(this: Departamento) {
+    console.log("Este es el departamento de " + this.name);
+  }
+}
+```
+
+_Lo que estamos diciendo ahora es: Cuando describe se ejecuta, 'this' se va a referir siempre a una instancia que está basada en la clase 'Department'_
+
+Si nuevamente intentaramos llamar `describe()` sobre `contabilidadCopia` recibiríamos un error en la compilación, ya que TypeScript nos avisaría que estamos violando una regla establecida en el constructor.
+
+## Clases públicas y privadas
+
+Todas las propiedades de nuestros objetos **son por defecto públicas**, aunque podríamos especificarlo de manera esplícita si así lo quisieramos anteponiendo la palabra `public` a una propiedad.
+
+Sin embargo, tenemos la posibilidad de especificar que alguna propiedad debe ser privada para asegurarnos de que esta **sólo pueda ser accedida desde dentro del objeto**. Esto lo logramos anteponiendo la palabra `private`.
+
+Entonces, una propiedad privada puede tener, por ejemplo, un método que agregue valores a dicha propiedad, pero nunca se podría agregar un nuevo valor accediendo a la misma por fuera, sin utilizar dicho método.
+
+Ejemplo:
+
+```ts
+accounting.addEmployee("Juan"); //Agrega un string al array 'employees'
+accounting.addemployee("Pedro"); // Agrega un string al array 'employees'
+
+accounting.employees[2] = "José"; // NO permite agregar el elemento por ser una clase privada no accesible por fuera del objeto
+```
+
+## Shorthand initialization
+
+Existe una manera más resumida de definir nuestras clases que nos evita repetir las propiedades a la hora de inicializarlas y posteriormente de escribir la función constructora.
+
+Esto consiste en pasar las propiedades del objeto una única vez como parámetros de la función constructora. En este caso, es necesario especificar de manera explícita si las propiedaes son `public` o `private`.
+
+```ts
+class Department {
+  private employees: string[] = [];
+
+  constructor(private id: string, public name: string) {}
+
+  describe(this: Department) {
+    console.log(`Department (${this.id}): ${this.name}`);
+  }
+
+  addEmployee(employee: string) {
+    // validation etc
+    this.employees.push(employee);
+  }
+
+  printEmployeeInformation() {
+    console.log(this.employees.length);
+    console.log(this.employees);
+  }
+}
+```
+
+## Propiedades read only
+
+Anteponiendo la palabra `readonly` a las propiedades en nuestro constructor (tal como lo vimos anteriormente con `private` y `public`) nos aseguramos de que esa propiedad sea de sólo lectura y no pueda ser modificada por fuera del objeto.
+Ejemplo:
+
+```ts
+constructor(private readonly id: string, public name: string) {
+  }
+```
+
+## Herencia
+
+Siguiendo con el ejemplo de los departamentos en una empresa, nos encontramos con que podrían haber departamentos que debieran contar con ciertos requisitos por encima de los ya definidos en la clase.
+
+Por ejemplo, el departamento de IT podría necesitar un equipo de técnicos, mientras que el de contabilidad una división financiera. El concepto de herencia puede ayudarnos con esto.
+
+Para solucionarlo, podemos **crear una nueva clase que herede de Department, aregando la palabra `extends Department` a continuación del nombre**.
+
+Al crear una clase que hereda de otra, esta ya cuenta con todas las propiedades de su clase padre, incluso su función constructora. Sin embargo, podemos agregar un nuevo constructor si así lo requerimos. Para esto, es necesario incluir también la palabra `super`.
+
+La utilización de `super` tiene lugar cuando llamamos a una función constructora en una clase que hereda de otra clase. El método `super()` llama al constructor de la clase padre y toma como argumento las propiedades de la misma (no así las propiedades particulares de la clase nueva que no están en la original)
+
+Ejemplo: **ITDepartment y AccountingDepartment heredan de Department**
+
+```ts
+class ITDepartment extends Department {
+  admins: string[];
+  constructor(id: string, admins: string[]) {
+    super(id, "IT");
+    this.admins = admins;
+  }
+}
+
+class AccountingDepartment extends Department {
+  constructor(id: string, private reports: string[]) {
+    super(id, "Accounting");
+  }
+
+  addReport(text: string) {
+    this.reports.push(text);
+  }
+
+  printReports() {
+    console.log(this.reports);
+  }
+}
+```
+
+## Métodos estáticos
+
+Son métodos y propiedades que se caracterizan por ser accesibles sin la necesidad de instanciar una clase. Los mismos se definen agregando la palabra `static` antes de definir el método o la propiedad dentro de la clase.
+
+## Clases Abstractas
+
+Las clases abstractas pueden proveer métodos abstractos, los cuales son necesarios para especificar que **deben ser implementados en cada instancia de esa clase**, pero la implementación va a depender de cada clase en particular.
+
+Tanto las clases como los métodos dentro de ellas se definen anteponiendo la palabra `abstract`.
+
+Por ejemplo: Podemos tener un método `describe()` en la clase `Departamento`, y queremos que cada departamento instanciado (por ejemplo el de IT y el de Contabilidad) esté obligado a definir su propio método describe a la hora de ser creado.
+
+## Constructores privados y 'singletons'
+
+Los constructores privados existen para asegurarse de que sólo pueda **crearse una única instancia de una clase determinada**, la cual debe crearse llamando un método estático dentro de la clase. Estos métodos forman parte de un patrón llamado _singleton_.
+
+Esto se logra anteponiendo la palabra `private` al constructor en cuestión y creando un método a continuación de la palabra `static` que nos devuelva una instancia.
+
+## Interfaces
+
+Una interfaz se encarga de **describir la estructura de un objeto**, y sólo existe en TypeScript. Dentro de la interfaz se detallan las propiedades que debe tener un objeto, pero no se pueden asignar valores a las mismas.
+
+Esto permite crear interfaces para luego utilizarlas como `types` a la hora de crear un objeto y así asegurarnos de que este tenga todas las propiedades y métodos previamente especificados.
+
+```ts
+interface Person {
+  name: string;
+  age: number;
+
+  greet(phrase: string): void;
+}
+
+let user1: Person;
+
+user1 = {
+  name: "Max",
+  age: 30,
+  greet(phrase: string) {
+    console.log(phrase + " " + this.name);
+  },
+};
+
+user1.greet("Hi there - I am");
+```
+
+## Clases Abstractas vs Interfaces: Diferencias
