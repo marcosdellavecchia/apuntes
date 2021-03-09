@@ -1008,3 +1008,62 @@ const storedData = userInput ?? "DEFAULT";
 
 console.log(storedData); // imprime 'DEFAULT'
 ```
+
+# Generics
+
+## Generic Types
+
+Un generic es un `type` que está de alguna forma conectado a otro `type`, y es muy flexible en relación a qué `type` es exactamente ese otro `type`. (🤔 )
+
+Poniéndolo en un ejemplo para que esté más claro, un `Array` es un tipo en TypeScript, y puede contener (estar conectado) con otro tipo como `string`.
+
+Esto se puede representar de dos formas:
+
+Alternativa 1
+
+```ts
+const names: Array = [];
+```
+
+Alternativa 2
+
+```ts
+const names: Array<> = [];
+
+// Ejemplo
+const names: Array<string> = []; // es lo mismo que string[]
+```
+
+Al saber de antemano que un elemento del array es del tipo `string`, TypeScript nos permite llamar métodos propios de ese type como por ejemplo `names[0].split('')`.
+
+## Creando una Generic Function
+
+Queremos crear una función que haga un merge de 2 objetos y retorne uno nuevo.
+
+```ts
+function merge<T, U>(objA: T, objB: U) {
+  return Object.assign(objA, objB);
+
+  const mergedObj = merge({ name: "Max", hobbies: ["Sports"] }, { age: 30 });
+}
+```
+
+De esta forma le estamos diciendo a TypeScript que la fucnion merge espera como argumento dos `types` distintos (sin especificar cuál es cada uno), y que lo que retorne deberá ser la conjunción de esos dos types.
+
+## Trabajando con Constraints
+
+Los constraints son limitaciones que se pueden asignar a los generic types. Esto se hace con la palabra `extends` después del tipo que se quiere limitar.
+
+```ts
+function merge<T extends object, U extends object>(objA: T, objB: U) {
+  return Object.assign(objA, objB);
+}
+
+const mergedObj = merge({ name: "Max", hobbies: ["Sports"] }, { age: 30 });
+```
+
+El ejemplo especifica que el tipo `T` puede ser cualquier objeto con cualquier estructura, pero tiene que ser un `object`. Lo mismo con sucede con el tipo `U`.
+
+De esta manera, TypeScript nos puede advertir con un error si estamos pasando un objeto que no coincida con lo especificado en el constraint, brindando más restricciones y menor margen de error.
+
+## Generic classes
