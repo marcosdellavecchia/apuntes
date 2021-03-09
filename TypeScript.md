@@ -1067,3 +1067,344 @@ El ejemplo especifica que el tipo `T` puede ser cualquier objeto con cualquier e
 De esta manera, TypeScript nos puede advertir con un error si estamos pasando un objeto que no coincida con lo especificado en el constraint, brindando más restricciones y menor margen de error.
 
 ## Generic classes
+
+Las clases genéricas nos permiten escribir clases muy flexibles manteniendo el tipado que nos de la seguridad de evitar errores al instanciar dichas clases.
+
+Ejemplo:
+
+```ts
+class DataStorage<T extends string | number | boolean> {
+  private data: T[] = [];
+
+  addItem(item: T) {
+    this.data.push(item);
+  }
+
+  removeItem(item: T) {
+    if (this.data.indexOf(item) === -1) {
+      return;
+    }
+    this.data.splice(this.data.indexOf(item), 1); // -1
+  }
+
+  getItems() {
+    return [...this.data];
+  }
+}
+
+const textStorage = new DataStorage<string>();
+textStorage.addItem("Max");
+textStorage.addItem("Manu");
+textStorage.removeItem("Max");
+console.log(textStorage.getItems());
+
+const numberStorage = new DataStorage<number>();
+```
+
+Si bien no es necesario, es importante agregar `extends string | number | boolean` en este caso, ya que si se pasara un `object` en este caso, los métodos del objeto no funcionarían correctamente.
+
+## Generic Types vs Union Types
+
+Si bien pueden parecer similares, la principal diferencia es que los **union types** permiten, por ejemplo, definir qué `types` puede recibir una función cada vez que sea llamada y luego ser flexibles con los `types` que utilizan sus métodos, es decir, pueden admitir otros distintos.
+
+Por otro lado, los **generic types** nos permiten _lockear_ un `type` específico para que sea utilizado a lo largo de toda la función, de manera que el `type` recibido como parámetro no puede diferir del type que se utiliza en los métodos seteados en la clase.
+
+# Decorators
+
+_Asegurarse de que el archivo `tsconfig.json` cuente con las siguientes propiedades para poder utilizar decorators en nuestro proyecto: `"target": es6` y `"experimentalDecorators": true`_.
+
+Un decorator es una función que se le aplica a algo (por ejemplo, una clase) y agrega anotaciones y sintaxis de _meta-programming_ para desarolladores. Los decorators **se ejecutan cuando la clase es definida, no instanciada**.
+
+```ts
+function Logger(constructor: Function) {
+  console.log("Logging...");
+  console.log(constructor);
+}
+
+@Logger
+class Person {
+  name = "Max";
+
+  constructor() {
+    console.log("Creating person object...");
+  }
+}
+
+const pers = new Person();
+```
+
+## Trabajando con Decorator Factories
+
+Las decorator factories nos retornan una funcion decorator, **pero nos permiten configurarla cuando la asignamos como decorator** a algo.
+
+Ejemplo:
+
+```ts
+function Logger(logString: string) {
+  return function (constructor: Function) {
+    console.log(logString);
+    console.log(constructor);
+  };
+}
+
+@Logger("LOGGING - PERSON")
+class Person {
+  name = "Max";
+
+  constructor() {
+    console.log("Creating person object...");
+  }
+}
+
+const pers = new Person();
+```
+
+## Decorators más avanzados
+
+Ejemplo de un decorator que agrega elementos al DOM cuando es llamado:
+
+```ts
+function WithTemplate(template: string, hookId: string) {
+  return function (constructor: any) {
+    const hookEl = document.getElementById(hookId);
+    const p = new constructor();
+    if (hookEl) {
+      hookEl.innerHTML = template;
+      hookEl.querySelector("h1")!.textContent = p.name;
+    }
+  };
+}
+
+@WithTemplate("<h1>My Person Object</h1>", "app")
+class Person {
+  name = "Max";
+
+  constructor() {
+    console.log("Creating person object...");
+  }
+}
+
+const pers = new Person();
+```
+
+## Agregando decorators múltiples
+
+Podemos agregar más de un decorator por clase, los cuales se van a ejecutar en orden de prioridad desde abajo hacia arriba (en el ejemplo a continuación, `WithTemplate` se ejecuta primero y `Logger` después).
+
+```ts
+@Logger("LOGGING")
+@WithTemplate("<h1>My Person Object</h1>", "app")
+class Person {
+  name = "Max";
+
+  constructor() {
+    console.log("Creating person object...");
+  }
+}
+
+const pers = new Person();
+```
+
+## Property Decorators
+
+Un property decorator es una función aplicada como una propiedad de una o varias clases.
+
+En el ejemplo se crean 3 decorators que luego son incorporados como propiedad de la clase Product:
+
+```ts
+function Log(target: any, propertyName: string | Symbol) {
+  console.log("Property decorator!");
+  console.log(target, propertyName);
+}
+
+function Log2(target: any, name: string, descriptor: PropertyDescriptor) {
+  console.log("Accessor decorator!");
+  console.log(target);
+  console.log(name);
+  console.log(descriptor);
+}
+
+function Log3(
+  target: any,
+  name: string | Symbol,
+  descriptor: PropertyDescriptor
+) {
+  console.log("Method decorator!");
+  console.log(target);
+  console.log(name);
+  console.log(descriptor);
+}
+
+function Log4(target: any, name: string | Symbol, position: number) {
+  console.log("Parameter decorator!");
+  console.log(target);
+  console.log(name);
+  console.log(position);
+}
+```
+
+```ts
+class Product {
+  @Log
+  title: string;
+  private _price: number;
+
+  @Log2
+  set price(val: number) {
+    if (val > 0) {
+      this._price = val;
+    } else {
+      throw new Error('Invalid price - should be positive!');
+    }
+  }
+
+  constructor(t: string, p: number) {
+    this.title = t;
+    this._price = p;
+  }
+
+  @Log3
+  getPriceWithTax(@Log4 tax: number) {
+    return this._price * (1 + tax);
+  }
+```
+
+## Retornando una clase en un Decorator
+
+Algunos decorators son capaces de retornar algo dentro de la función del decorator. Esto nos da la posibilidad de **ejecutar los decorators cuando la clase es instanciada en lugar de declarada**.
+
+```ts
+function WithTemplate(template: string, hookId: string) {
+  console.log("TEMPLATE FACTORY");
+  return function <T extends { new (...args: any[]): { name: string } }>(
+    originalConstructor: T
+  ) {
+    return class extends originalConstructor {
+      constructor(..._: any[]) {
+        super();
+        console.log("Rendering template");
+        const hookEl = document.getElementById(hookId);
+        if (hookEl) {
+          hookEl.innerHTML = template;
+          hookEl.querySelector("h1")!.textContent = this.name;
+        }
+      }
+    };
+  };
+}
+```
+
+## Ejemplo: Creando un decorator de 'Autobind'
+
+```ts
+function Autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    enumerable: false,
+    get() {
+      const boundFn = originalMethod.bind(this);
+      return boundFn;
+    },
+  };
+  return adjDescriptor;
+}
+
+class Printer {
+  message = "This works!";
+
+  @Autobind
+  showMessage() {
+    console.log(this.message);
+  }
+}
+
+const p = new Printer();
+p.showMessage();
+
+const button = document.querySelector("button")!;
+button.addEventListener("click", p.showMessage);
+```
+
+## Ejemplo #2: Validación utilizando decorators
+
+```ts
+interface ValidatorConfig {
+  [property: string]: {
+    [validatableProp: string]: string[]; // ['required', 'positive']
+  };
+}
+
+const registeredValidators: ValidatorConfig = {};
+
+function Required(target: any, propName: string) {
+  registeredValidators[target.constructor.name] = {
+    ...registeredValidators[target.constructor.name],
+    [propName]: [
+      ...registeredValidators[target.constructor.name][propName],
+      "required",
+    ],
+  };
+}
+
+function PositiveNumber(target: any, propName: string) {
+  registeredValidators[target.constructor.name] = {
+    ...registeredValidators[target.constructor.name],
+    [propName]: [
+      ...registeredValidators[target.constructor.name][propName],
+      "positive",
+    ],
+  };
+}
+
+function validate(obj: any) {
+  const objValidatorConfig = registeredValidators[obj.constructor.name];
+  if (!objValidatorConfig) {
+    return true;
+  }
+  let isValid = true;
+  for (const prop in objValidatorConfig) {
+    for (const validator of objValidatorConfig[prop]) {
+      switch (validator) {
+        case "required":
+          isValid = isValid && !!obj[prop];
+          break;
+        case "positive":
+          isValid = isValid && obj[prop] > 0;
+          break;
+      }
+    }
+  }
+  return isValid;
+}
+
+class Course {
+  @Required
+  title: string;
+  @PositiveNumber
+  price: number;
+
+  constructor(t: string, p: number) {
+    this.title = t;
+    this.price = p;
+  }
+}
+
+const courseForm = document.querySelector("form")!;
+courseForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const titleEl = document.getElementById("title") as HTMLInputElement;
+  const priceEl = document.getElementById("price") as HTMLInputElement;
+
+  const title = titleEl.value;
+  const price = +priceEl.value;
+
+  const createdCourse = new Course(title, price);
+
+  if (!validate(createdCourse)) {
+    alert("Invalid input, please try again!");
+    return;
+  }
+  console.log(createdCourse);
+});
+```
