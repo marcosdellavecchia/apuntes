@@ -1411,10 +1411,16 @@ courseForm.addEventListener("submit", (event) => {
 
 # TypeScript + React
 
-## Creando un nuevo proyecto con `create-react-app`
+## Creando un nuevo proyecto de React
 
-```node
+```
 npx create-react-app my-app --template typescript
+```
+
+## Creando un nuevo proyecto de React Native con Expo
+
+```
+expo init -t expo-template-blank-typescript
 ```
 
 ## Types específicos de React y otros tipados a tener en cuenta
@@ -1492,3 +1498,9 @@ const todoAddHandler = (text: string) => {
   ]);
 };
 ```
+
+# TypeScript + React Native: Instalación
+
+## [Documentación React Native](https://reactnative.dev/docs/typescript)
+
+## [Documentación Expo](https://docs.expo.io/guides/typescript/)
