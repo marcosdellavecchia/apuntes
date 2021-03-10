@@ -1408,3 +1408,87 @@ courseForm.addEventListener("submit", (event) => {
   console.log(createdCourse);
 });
 ```
+
+# TypeScript + React
+
+## Creando un nuevo proyecto con `create-react-app`
+
+```node
+npx create-react-app my-app --template typescript
+```
+
+## Types específicos de React y otros tipados a tener en cuenta
+
+### - Al crear un componente funcional
+
+Se debe agregar `.FC` que hace referencia a un _Functional Component_ de React.
+
+```ts
+const App: React.FC = () => {
+  return <div></div>;
+};
+```
+
+### - Al recibir props de otro componente
+
+Se debe definir la estructura de los props en el componente que los recibe. Esto puede lograrse utilizando `interface` o `type`.
+
+```ts
+interface TodoListProps {
+  items: { id: string; text: string }[];
+  onDeleteTodo: (id: string) => void;
+}
+```
+
+Luego es necesario apuntar a la interfaz definida, esto se hace cuando se define la función del componente que las va a utilizar.
+
+```ts
+const TodoList: React.FC<TodoListProps> = (props) => {
+  return <div></div>;
+};
+```
+
+### - Al usar Hooks
+
+Se debe definir la estructura de la información que va a recibir ese Hook. Por ejemplo, al utilizar `useState()` es necesario indicarle a TypeScript cómo se va a ver el estado:
+
+**_App.js_**
+
+```ts
+const [todos, setTodos] = useState<Todo[]>([]);
+```
+
+Se aclara que va a recibir un array de objetos con una estructura definida en la constante `Todo`.
+
+**_todo.model.ts_**
+
+```ts
+export interface Todo {
+  id: string;
+  text: string;
+}
+```
+
+En este caso se utilizó una interfaz en un archivo externo para mantener el código limpio, pero hubiera funcionado de la misma forma así:
+
+```ts
+const [todos, setTodos] = useState<
+  {
+    id: string;
+    text: string;
+  }[]
+>([]);
+```
+
+### - Al definir una función
+
+No está demás recordar que se debe pasar como parámetro (en caso de corresponder) el `type` correspondiente al elemento esperado.
+
+```ts
+const todoAddHandler = (text: string) => {
+  setTodos((prevTodos) => [
+    ...prevTodos,
+    { id: Math.random().toString(), text: text },
+  ]);
+};
+```
